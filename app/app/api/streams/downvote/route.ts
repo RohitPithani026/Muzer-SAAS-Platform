@@ -10,11 +10,11 @@ const UpvoteSchema = z.object({
 
 export async function POST(req: NextRequest) {
     const session = await getServerSession();
-    
+
     // Todo: You can
     const user = await prismaClient.user.findFirst({
         where: {
-            email: session?.user?.email ?? "",  
+            email: session?.user?.email ?? "",
         }
     });
 
@@ -23,8 +23,24 @@ export async function POST(req: NextRequest) {
             message: "Unauthenticated"
         }, {
             status: 411
-        })
+        });
     }
 
-    const data = UpvoteSchema.parse(await req.json());
+    try {
+        const data = UpvoteSchema.parse(await req.json());
+        await prismaClient.upvote.delete({
+            where: {
+                userId_streamId: {
+                    userId: user.id,
+                    streamId: data.streamId
+                }
+            }
+        });
+    } catch (e) {
+        return NextResponse.json({
+            message: "Error while upvoting"
+        }, {
+            status: 411
+        });
+    }
 }
