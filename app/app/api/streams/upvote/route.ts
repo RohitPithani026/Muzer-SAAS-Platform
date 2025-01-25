@@ -11,7 +11,7 @@ const UpvoteSchema = z.object({
 export async function POST(req: NextRequest) {
     const session = await getServerSession();
     
-    // Todo: You can
+    // Todo: You can get rid of the db call here
     const user = await prismaClient.user.findFirst({
         where: {
             email: session?.user?.email ?? "",  
@@ -34,6 +34,9 @@ export async function POST(req: NextRequest) {
                 streamId: data.streamId
             }
         });
+        return NextResponse.json({
+            message: "Done!"
+        })
     } catch(e) {
         return NextResponse.json({
             message: "Error while upvoting"
