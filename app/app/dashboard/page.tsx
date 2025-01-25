@@ -28,8 +28,9 @@ const REFRESH_INTERVAL_MS = 10 * 1000;
 export default function Home() {
     const [videoUrl, setVideoUrl] = useState("")
     const [queue, setQueue] = useState<Video[]>([]);
-    const [currentVideo, setCurrentVideo] = useState("dQw4w9WgXcQ")
-    const [previewId, setPreviewId] = useState("")
+    const [currentVideo, setCurrentVideo] = useState("dQw4w9WgXcQ");
+    const [previewId, setPreviewId] = useState("");
+    const [loading, setLoading] = useState(false);
 
     async function refreshStreams() {
         try {
@@ -58,21 +59,24 @@ export default function Home() {
         return () => clearInterval(interval);
     }, []);
 
-    // const handleSubmit = (e: React.FormEvent) => {
-    //     e.preventDefault()
-    //     if (previewId) {
-    //         setQueue((prev) => [
-    //             { id: previewId, title: `New Song`, thumbnail: `https://img.youtube.com/vi/${previewId}/default.jpg`, votes: 0 },
-    //             ...prev,
-    //         ])
-    //     }
-    //     setVideoUrl("")
-    //     setPreviewId("")
-    //     toast({
-    //         title: "Song submitted!",
-    //         description: "Your song has been added to the queue.",
-    //     })
-    // }
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setLoading(true);
+        const res = await fetch("/api/streams", {
+            method: "POST",
+            body: JSON.stringify({
+                creatorId: "781b98c2-6caf-40e0-bd6a-9b6a3b12b4ad",
+                url: videoUrl
+            })
+        });
+        setQueue([...queue, await res.json()]);
+        setLoading(false);
+        setVideoUrl('');
+        toast({
+            title: "Song submitted!",
+            description: "Your song has been added to the queue.",
+        })
+    }
 
     const handleVote = async (id: string, isUpvote: boolean) => {
         setQueue(
@@ -140,7 +144,7 @@ export default function Home() {
                                 allowFullScreen
                             ></iframe>
                         </div>
-                        <form className="space-y-2"> {/*onSubmit={handleSubmit} */}
+                        <form onSubmit={handleSubmit} className="space-y-2"> 
                             <Input
                                 type="text"
                                 placeholder="Paste YouTube video URL here"
@@ -148,15 +152,7 @@ export default function Home() {
                                 onChange={handleVideoUrlChange}
                                 className="bg-gray-800 border-gray-700 text-white placeholder-gray-400"
                             />
-                            <Button onClick={() => {
-                                fetch("/api/streams", {
-                                    method: "POST",
-                                    body: JSON.stringify({
-                                        creatorId: "creatorId",
-                                        url: videoUrl
-                                    })
-                                })
-                            }} type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={!videoUrl}>Add to Queue</Button>
+                            <Button onClick={handleSubmit} type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={loading}>{loading ? "Loading..." : "Add to Queue"}</Button>
                             {/* Video preview area */}
                             {previewId && (
                                 <motion.div
