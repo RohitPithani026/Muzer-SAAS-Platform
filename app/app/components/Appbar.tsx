@@ -1,10 +1,7 @@
 "use client";
 
 import { signIn, signOut, useSession } from "next-auth/react";
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Music } from "lucide-react"
 
 export function Appbar() {
     const session = useSession();

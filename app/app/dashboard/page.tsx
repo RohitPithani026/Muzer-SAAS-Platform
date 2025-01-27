@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { ThumbsUp, ThumbsDown, Play, Share2, Slice } from "lucide-react"
 import { motion } from "framer-motion"
-import { toast } from "@/hooks/use-toast"
 import axios from "axios";
 import StreamView from "../components/StreamView"
 

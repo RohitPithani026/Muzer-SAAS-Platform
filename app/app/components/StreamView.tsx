@@ -6,9 +6,8 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { ThumbsUp, ThumbsDown, Play, Share2, Slice } from "lucide-react"
 import { motion } from "framer-motion"
-import { toast } from "@/hooks/use-toast"
+import { toast, ToastContainer } from "react-toastify"
 import { Appbar } from "./Appbar"
-import { ToastProvider } from "@/components/ui/toast"
 
 interface Video {
     id: string;
@@ -66,10 +65,7 @@ export default function StreamView({
         setQueue([...queue, await res.json()]);
         setLoading(false);
         setVideoUrl('');
-        toast({
-            title: "Song submitted!",
-            description: "Your song has been added to the queue.",
-        })
+        toast.success("Song added to queue successfully");
     }
 
     const handleVote = async (id: string, isUpvote: boolean) => {
@@ -103,22 +99,30 @@ export default function StreamView({
     }
 
     const handleShare = () => {
-        const shareableLink = `${window.location.protocol}//${window.location.host}/creatorId/${creatorId}`;
+        const shareableLink = `${window.location.host}/creator/${creatorId}`;
         navigator.clipboard.writeText(shareableLink).then(
             () => {
-                toast({
-                    title: "Success",
-                    description: "Link copied to clipboard.",
-                    variant: "default",
-                });
+                toast.success('Link copied to clipboard!', {
+                    position: "top-right",
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                })
             },
             (err) => {
-                console.error("Could not copy text: ", err);
-                toast({
-                    title: "Error",
-                    description: "Failed to copy link. Please try again.",
-                    variant: "destructive",
-                });
+                console.error('Could not copy text: ', err)
+                toast.error('Failed to copy link. Please try again.', {
+                    position: "top-right",
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                })
             }
         );
     };
@@ -256,7 +260,18 @@ export default function StreamView({
                     </div>
                 </main>
             </div>
+            <ToastContainer 
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="dark"
+            />
         </div>
-
     )
 }
