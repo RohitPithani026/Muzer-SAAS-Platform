@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     try {
         const data = CreateStreamSchema.parse(await req.json());
         const isYt = data.url.match(YT_REGEX);
-        if(!isYt) {
+        if (!isYt) {
             return NextResponse.json({
                 message: "Wrong URL format"
             }, {
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
         const res = await youtubesearchapi.GetVideoDetails(extractedId)
 
         const thumbnails = res.thumbnail.thumbnails;
-        thumbnails.sort((a: {width: number}, b: {width: number}) => a.width < b.width ? -1 : 1);
+        thumbnails.sort((a: { width: number }, b: { width: number }) => a.width < b.width ? -1 : 1);
 
         const stream = await prismaClient.stream.create({
             data: {
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
             hasUpvoted: false,
             upvotes: 0
         })
-    } catch(e) {
+    } catch (e) {
         console.log(e)
         return NextResponse.json({
             message: "Error while adding a stream"
@@ -60,53 +60,61 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
     const creatorId = req.nextUrl.searchParams.get("creatorId");
     const session = await getServerSession();
-        // Todo: You can get rid of the db call here
-        const user = await prismaClient.user.findFirst({
-            where: {
-                email: session?.user?.email ?? "",
-            }
-        });
-    
-        if (!user) {
-            return NextResponse.json({
-                message: "Unauthenticated"
-            }, {
-                status: 403
-            });
+    // Todo: You can get rid of the db call here
+    const user = await prismaClient.user.findFirst({
+        where: {
+            email: session?.user?.email ?? "",
         }
+    });
+
+    if (!user) {
+        return NextResponse.json({
+            message: "Unauthenticated"
+        }, {
+            status: 403
+        });
+    }
     if (!creatorId) {
-        return NextResponse.json({ 
+        return NextResponse.json({
             message: "Error"
-        }, { 
+        }, {
             status: 411
         });
     }
 
-    const streams = await prismaClient.stream.findMany({
-        where: { 
-            userId: creatorId 
+    const [streams, activeStreams] = await Promise.all([await prismaClient.stream.findMany({
+        where: {
+            userId: creatorId
         },
         include: {
-            _count: { 
-                select: { 
-                    upvotes: true 
-                } 
+            _count: {
+                select: {
+                    upvotes: true
+                }
             },
-            upvotes: { 
-                where: { 
-                    userId: user.id 
-                } 
+            upvotes: {
+                where: {
+                    userId: user.id
+                }
             },
         },
-    });
+    }), prismaClient.currentStream.findFirst({
+        where: {
+            userId: creatorId
+        },
+        include: {
+            stream: true
+        }
+    })]);
 
     return NextResponse.json({
-        streams: streams.map(({ 
-            _count, upvotes, ...rest 
+        streams: streams.map(({
+            _count, upvotes, ...rest
         }) => ({
             ...rest,
             upvotes: _count.upvotes,
             haveUpvoted: upvotes.length > 0,
         })),
+        activeStreams
     });
 }
