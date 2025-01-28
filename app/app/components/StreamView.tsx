@@ -26,9 +26,11 @@ interface Video {
 const REFRESH_INTERVAL_MS = 10 * 1000;
 
 export default function StreamView({
-    creatorId
+    creatorId,
+    playVideo = false
 }: {
-    creatorId: string
+    creatorId: string;
+    playVideo: boolean;
 }) {
     const [videoUrl, setVideoUrl] = useState("")
     const [queue, setQueue] = useState<Video[]>([]);
@@ -42,6 +44,7 @@ export default function StreamView({
         });
         const json = await res.json();
         setQueue(json.streams.sort((a: any, b: any) => a.upvotes < b.upvotes ? 1 : -1));
+        setCurrentVideo(json.activeStream);
     }
 
     useEffect(() => {
@@ -91,10 +94,13 @@ export default function StreamView({
         });
     };
 
-    const playNext = () => {
+    const playNext = async () => {
         if (queue.length > 0) {
-            setCurrentVideo(queue[0])
-            setQueue(queue.slice(1))
+            const data = await fetch(`/api/streams/next`, {
+                method: "GET",
+            })
+            const json = await data.json();
+            setCurrentVideo(json.stream)
         }
     }
 
@@ -158,14 +164,31 @@ export default function StreamView({
                         {/* Main video player */}
                         <div className="lg:col-span-2 lg:row-span-2 space-y-6">
                             <div className="aspect-video">
-                                <iframe
-                                    width="100%"
-                                    height="100%"
-                                    src={`https://www.youtube.com/embed/${currentVideo?.id}`}
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                ></iframe>
+                                {playVideo ? <>
+                                    <iframe
+                                        width="100%"
+                                        height="100%"
+                                        src={`https://www.youtube.com/embed/${currentVideo?.id}?autoplay=1`}
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                    ></iframe>
+                                </> : <>
+                                    <img
+                                        src={currentVideo?.bigImg}
+                                        className="w-full h-72 object-cover rounded"
+                                    />
+                                    <p className="mt-2 text-center font-semibold text-white">{currentVideo?.title}</p>
+                                </>}
                             </div>
+                            {playVideo && (
+                                <Button
+                                    onClick={playNext}
+                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white transition-colors"
+                                >
+                                    <Play className="mr-2 h-4 w-4" />
+                                    Play Next
+                                </Button>
+                            )}
                             <form onSubmit={handleSubmit} className="space-y-2">
                                 <Input
                                     type="text"
@@ -182,17 +205,16 @@ export default function StreamView({
                                         animate={{ opacity: 1, height: "auto" }}
                                         transition={{ duration: 0.5 }}
                                         className="mt-4 overflow-hidden"
-                                        style={{ minHeight: "200px" }}
+                                        style={{ minHeight: "400px" }}
                                     >
                                         <h3 className="text-xl font-semibold mb-2 text-purple-300">Preview:</h3>
-                                        <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden">
+                                        <div className="aspect-video rounded-lg overflow-hidden">
                                             <iframe
                                                 width="100%"
                                                 height="100%"
                                                 src={`https://www.youtube.com/embed/${previewId}`}
                                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                 allowFullScreen
-                                                className="w-full h-full"
                                             ></iframe>
                                         </div>
                                     </motion.div>
@@ -260,7 +282,7 @@ export default function StreamView({
                     </div>
                 </main>
             </div>
-            <ToastContainer 
+            <ToastContainer
                 position="top-right"
                 autoClose={3000}
                 hideProgressBar={false}

@@ -11,7 +11,7 @@ export default async function ({
 
     return (
         <div>
-            <StreamView creatorId={creatorId} />
+            <StreamView creatorId={creatorId} playVideo={false} />
         </div>
     );
 }

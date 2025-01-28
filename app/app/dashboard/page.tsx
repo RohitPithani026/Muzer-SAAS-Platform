@@ -28,5 +28,5 @@ const REFRESH_INTERVAL_MS = 10 * 1000;
 const creatorId = "781b98c2-6caf-40e0-bd6a-9b6a3b12b4ad";
 
 export default function Component() {
-    return <StreamView creatorId={creatorId} />
+    return <StreamView creatorId={creatorId} playVideo={true} />
 }
