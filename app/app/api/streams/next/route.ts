@@ -21,7 +21,8 @@ export async function GET() {
 
     const mostUpvotedStream = await prismaClient.stream.findFirst({
         where: {
-            userId: user.id
+            userId: user.id,
+            played: false
         },
         orderBy: {
             upvotes: {
@@ -35,6 +36,7 @@ export async function GET() {
             userId: user.id
         },
         update: {
+            userId: user.id,
             streamId: mostUpvotedStream?.id
         },
         create: {
@@ -42,10 +44,14 @@ export async function GET() {
             streamId: mostUpvotedStream?.id
         }
     }),
-    prismaClient.stream.delete({
+    prismaClient.stream.update({
         where: {
             id: mostUpvotedStream?.id ?? ""
         },
+        data: {
+            played: true,
+            playedTs: new Date()
+        }
     })])
 
     return NextResponse.json({

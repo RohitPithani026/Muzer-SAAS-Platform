@@ -84,7 +84,8 @@ export async function GET(req: NextRequest) {
 
     const [streams, activeStreams] = await Promise.all([await prismaClient.stream.findMany({
         where: {
-            userId: creatorId
+            userId: creatorId,
+            played: false
         },
         include: {
             _count: {

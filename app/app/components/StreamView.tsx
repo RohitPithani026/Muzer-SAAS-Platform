@@ -103,7 +103,8 @@ export default function StreamView({
                     method: "GET",
                 })
                 const json = await data.json();
-                setCurrentVideo(json.stream)
+                setCurrentVideo(json.stream);
+                setQueue(q => q.filter(x => x.id !== json.stream?.id));
             } catch (e) {
                 console.error("Error playing next song:", e);
             } finally {
@@ -232,7 +233,6 @@ export default function StreamView({
                                                 height="100%"
                                                 src={`https://www.youtube.com/embed/${previewId}`}
                                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                allowFullScreen
                                             ></iframe>
                                         </div>
                                     </motion.div>
