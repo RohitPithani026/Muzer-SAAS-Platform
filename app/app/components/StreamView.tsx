@@ -37,6 +37,7 @@ export default function StreamView({
     const [currentVideo, setCurrentVideo] = useState<Video | null>(null);
     const [previewId, setPreviewId] = useState("");
     const [loading, setLoading] = useState(false);
+    const [playNextLoader, setPlayNextLoader] = useState(false);
 
     async function refreshStreams() {
         const res = await fetch(`/api/streams/?creatorId=${creatorId}`, {
@@ -44,7 +45,7 @@ export default function StreamView({
         });
         const json = await res.json();
         setQueue(json.streams.sort((a: any, b: any) => a.upvotes < b.upvotes ? 1 : -1));
-        setCurrentVideo(json.activeStream);
+        setCurrentVideo(json.activeStream.stream);
     }
 
     useEffect(() => {
@@ -96,13 +97,20 @@ export default function StreamView({
 
     const playNext = async () => {
         if (queue.length > 0) {
-            const data = await fetch(`/api/streams/next`, {
-                method: "GET",
-            })
-            const json = await data.json();
-            setCurrentVideo(json.stream)
+            try {
+                setPlayNextLoader(true);
+                const data = await fetch('/api/streams/next', {
+                    method: "GET",
+                })
+                const json = await data.json();
+                setCurrentVideo(json.stream)
+            } catch (e) {
+                console.error("Error playing next song:", e);
+            } finally {
+                setPlayNextLoader(false);
+            }
         }
-    }
+    };
 
     const handleShare = () => {
         const shareableLink = `${window.location.host}/creator/${creatorId}`;
@@ -163,30 +171,40 @@ export default function StreamView({
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Main video player */}
                         <div className="lg:col-span-2 lg:row-span-2 space-y-6">
-                            <div className="aspect-video">
-                                {playVideo ? <>
-                                    <iframe
-                                        width="100%"
-                                        height="100%"
-                                        src={`https://www.youtube.com/embed/${currentVideo?.id}?autoplay=1`}
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                    ></iframe>
-                                </> : <>
-                                    <img
-                                        src={currentVideo?.bigImg}
-                                        className="w-full h-72 object-cover rounded"
-                                    />
-                                    <p className="mt-2 text-center font-semibold text-white">{currentVideo?.title}</p>
-                                </>}
-                            </div>
+                            <h2 className="text-2xl font-bold text-white">Now Playing</h2>
+                            {currentVideo ? (
+                                <div className="aspect-video">
+                                    {playVideo ? (
+                                        <iframe
+                                            width="100%"
+                                            height="100%"
+                                            src={`https://www.youtube.com/embed/${currentVideo.extractedId}?autoplay=1`}
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                        ></iframe>
+                                    ) : (
+                                        <>
+                                            <img
+                                                src={currentVideo.bigImg}
+                                                className="w-full h-72 object-cover rounded"
+                                            />
+                                            <p className="mt-2 text-center font-semibold text-white">{currentVideo.title}</p>
+                                        </>
+                                    )}
+                                </div>
+                            ) : (
+                                <p className="text-center py-8 text-gray-400">
+                                    No video playing
+                                </p>
+                            )}
                             {playVideo && (
                                 <Button
+                                    disabled={playNextLoader}
                                     onClick={playNext}
                                     className="w-full bg-purple-600 hover:bg-purple-700 text-white transition-colors"
                                 >
-                                    <Play className="mr-2 h-4 w-4" />
-                                    Play Next
+                                    <Play className="mr-2 h-4 w-4" />{" "}
+                                    {playNextLoader ? "Loading..." : "Play next"}
                                 </Button>
                             )}
                             <form onSubmit={handleSubmit} className="space-y-2">
