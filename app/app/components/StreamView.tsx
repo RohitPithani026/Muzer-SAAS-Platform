@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -8,6 +8,7 @@ import { ThumbsUp, ThumbsDown, Play, Share2, Slice } from "lucide-react"
 import { motion } from "framer-motion"
 import { toast, ToastContainer } from "react-toastify"
 import { Appbar } from "./Appbar"
+import YouTubePlayer from "youtube-player";
 
 interface Video {
     id: string;
@@ -38,6 +39,7 @@ export default function StreamView({
     const [previewId, setPreviewId] = useState("");
     const [loading, setLoading] = useState(false);
     const [playNextLoader, setPlayNextLoader] = useState(false);
+    const videoPlayerRef = useRef<HTMLDivElement>(null);
 
     async function refreshStreams() {
         const res = await fetch(`/api/streams/?creatorId=${creatorId}`, {
@@ -45,16 +47,39 @@ export default function StreamView({
         });
         const json = await res.json();
         setQueue(json.streams.sort((a: any, b: any) => a.upvotes < b.upvotes ? 1 : -1));
-        setCurrentVideo(json.activeStream.stream);
+
+        setCurrentVideo(video => {
+            if (video?.id === json.activeStream?.stream?.id) {
+                return video;
+            }
+            return json.activeStream?.stream
+        });
     }
 
     useEffect(() => {
         refreshStreams();
-        const interval = setInterval(() => {
-            refreshStreams();
-        }, REFRESH_INTERVAL_MS);
+        const interval = setInterval(refreshStreams, REFRESH_INTERVAL_MS);
         return () => clearInterval(interval);
     }, []);
+
+    useEffect(() => {
+        if (!videoPlayerRef.current || !currentVideo) return;
+
+        const player = YouTubePlayer(videoPlayerRef.current);
+        player.loadVideoById(currentVideo.extractedId);
+        player.playVideo();
+
+        const eventHandler = (event: { data: number }) => {
+            if (event.data === 0) {
+                playNext();
+            }
+        };
+        player.on("stateChange", eventHandler);
+
+        return () => {
+            player.destroy();
+        };
+    }, [currentVideo, videoPlayerRef]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -176,13 +201,17 @@ export default function StreamView({
                             {currentVideo ? (
                                 <div className="aspect-video">
                                     {playVideo ? (
-                                        <iframe
-                                            width="100%"
-                                            height="100%"
-                                            src={`https://www.youtube.com/embed/${currentVideo.extractedId}?autoplay=1`}
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            allowFullScreen
-                                        ></iframe>
+                                        <div
+                                            ref={videoPlayerRef}
+                                            className="w-full aspect-video"
+                                        />
+                                        // <iframe
+                                        //     width="100%"
+                                        //     height="100%"
+                                        //     src={`https://www.youtube.com/embed/${currentVideo.extractedId}?autoplay=1`}
+                                        //     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        //     allowFullScreen
+                                        // ></iframe>
                                     ) : (
                                         <>
                                             <img
