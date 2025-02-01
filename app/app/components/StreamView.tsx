@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
-import { ThumbsUp, ThumbsDown, Play, Share2, Slice } from "lucide-react"
+import { ThumbsUp, ThumbsDown, Play, Share2 } from "lucide-react"
 import { motion } from "framer-motion"
 import { toast, ToastContainer } from "react-toastify"
 import { Appbar } from "./Appbar"
@@ -46,40 +46,62 @@ export default function StreamView({
             credentials: "include"
         });
         const json = await res.json();
-        setQueue(json.streams.sort((a: any, b: any) => a.upvotes < b.upvotes ? 1 : -1));
+
+        const sortedQueue = json.streams.sort((a: Video, b: Video) => b.upvotes - a.upvotes);
+        setQueue(sortedQueue);
 
         setCurrentVideo(video => {
-            if (video?.id === json.activeStream?.stream?.id) {
+            if (!video && sortedQueue.length > 0) {
+                return sortedQueue[0];
+            }
+            if (!json.activeStream?.stream && video) {
                 return video;
             }
-            return json.activeStream?.stream
+            if (video && sortedQueue.some((v: Video) => v.id === video.id)) {
+                return video; 
+            }
+            return json.activeStream?.stream || video;
         });
     }
 
     useEffect(() => {
         refreshStreams();
-        const interval = setInterval(refreshStreams, REFRESH_INTERVAL_MS);
+        const interval = setInterval(() => {
+            refreshStreams();
+        }, REFRESH_INTERVAL_MS);
         return () => clearInterval(interval);
-    }, []);
+    }, []); 
+
 
     useEffect(() => {
         if (!videoPlayerRef.current || !currentVideo) return;
 
-        const player = YouTubePlayer(videoPlayerRef.current);
-        player.loadVideoById(currentVideo.extractedId);
-        player.playVideo();
+        let player = YouTubePlayer(videoPlayerRef.current, {
+            videoId: currentVideo.extractedId,
+            playerVars: {
+                autoplay: 1,
+                controls: 1,
+                modestbranding: 1,
+            },
+        });
 
-        const eventHandler = (event: { data: number }) => {
+        player.on("ready", () => {
+            console.log("YouTube Player is ready!");
+            player.playVideo();
+        });
+
+        player.on("stateChange", (event: any) => {
+            console.log("Player State Changed:", event.data);
             if (event.data === 0) {
-                playNext();
+                console.log("Video ended. Playing next...");
+                setTimeout(playNext, 2000);
             }
-        };
-        player.on("stateChange", eventHandler);
+        });
 
         return () => {
             player.destroy();
         };
-    }, [currentVideo, videoPlayerRef]);
+    }, [currentVideo]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -121,20 +143,37 @@ export default function StreamView({
     };
 
     const playNext = async () => {
-        if (queue.length > 0) {
-            try {
-                setPlayNextLoader(true);
-                const data = await fetch('/api/streams/next', {
-                    method: "GET",
-                })
-                const json = await data.json();
-                setCurrentVideo(json.stream);
-                setQueue(q => q.filter(x => x.id !== json.stream?.id));
-            } catch (e) {
-                console.error("Error playing next song:", e);
-            } finally {
-                setPlayNextLoader(false);
+        if (queue.length === 0) {
+            console.log("No more videos in the queue.");
+            setCurrentVideo(null);
+            return;
+        }
+
+        try {
+            setPlayNextLoader(true);
+
+            const data = await fetch('/api/streams/next', { method: "GET" });
+            const json = await data.json();
+
+            if (!json.stream) {
+                console.log("No new video received from API.");
+                setCurrentVideo(null);
+                return;
             }
+
+            console.log("Next video:", json.stream);
+
+            setCurrentVideo(json.stream);
+            setQueue(q => q.filter(video => video.id !== json.stream.id));
+
+            setTimeout(() => {
+                refreshStreams(); 
+            }, 2000);
+
+        } catch (e) {
+            console.error("Error playing next song:", e);
+        } finally {
+            setPlayNextLoader(false);
         }
     };
 
@@ -199,19 +238,11 @@ export default function StreamView({
                         <div className="lg:col-span-2 lg:row-span-2 space-y-6">
                             <h2 className="text-2xl font-bold text-white">Now Playing</h2>
                             {currentVideo ? (
-                                <div className="aspect-video">
+                                <div className="aspect-video arelative w-full max-w-4xl mx-auto">
                                     {playVideo ? (
-                                        <div
-                                            ref={videoPlayerRef}
-                                            className="w-full aspect-video"
-                                        />
-                                        // <iframe
-                                        //     width="100%"
-                                        //     height="100%"
-                                        //     src={`https://www.youtube.com/embed/${currentVideo.extractedId}?autoplay=1`}
-                                        //     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        //     allowFullScreen
-                                        // ></iframe>
+                                        <div className="relative w-full h-0 pb-[56.25%] rounded-lg overflow-hidden">
+                                            <div ref={videoPlayerRef} className="absolute top-0 left-0 w-full h-full"></div>
+                                        </div>
                                     ) : (
                                         <>
                                             <img

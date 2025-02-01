@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { prismaClient } from "../../lib/db";
+import db from "../../lib/db";
 //@ts-ignore
 import youtubesearchapi from "youtube-search-api";
-import { YT_REGEX } from "@/app/lib/utils";
+import { YT_REGEX } from "@/lib/utils";
 import { getServerSession } from "next-auth";
 
 const CreateStreamSchema = z.object({
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
         const thumbnails = res.thumbnail.thumbnails;
         thumbnails.sort((a: { width: number }, b: { width: number }) => a.width < b.width ? -1 : 1);
 
-        const stream = await prismaClient.stream.create({
+        const stream = await db.stream.create({
             data: {
                 userId: data.creatorId,
                 url: data.url,
@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
     const creatorId = req.nextUrl.searchParams.get("creatorId");
     const session = await getServerSession();
     // Todo: You can get rid of the db call here
-    const user = await prismaClient.user.findFirst({
+    const user = await db.user.findFirst({
         where: {
             email: session?.user?.email ?? "",
         }
@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
         });
     }
 
-    const [streams, activeStreams] = await Promise.all([await prismaClient.stream.findMany({
+    const [streams, activeStreams] = await Promise.all([await db.stream.findMany({
         where: {
             userId: creatorId,
             played: false
@@ -99,7 +99,7 @@ export async function GET(req: NextRequest) {
                 }
             },
         },
-    }), prismaClient.currentStream.findFirst({
+    }), db.currentStream.findFirst({
         where: {
             userId: creatorId
         },
