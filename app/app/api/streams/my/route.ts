@@ -1,8 +1,8 @@
 import db from "../../../lib/db";
 import { getServerSession } from "next-auth";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
     const session = await getServerSession();
     // Todo: You can get rid of the db call here
     const user = await db.user.findFirst({

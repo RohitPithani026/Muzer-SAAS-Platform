@@ -3,13 +3,15 @@ import { z } from "zod";
 import db from "../../lib/db";
 //@ts-ignore
 import youtubesearchapi from "youtube-search-api";
-import { YT_REGEX } from "@/lib/utils";
+import { YT_REGEX } from "../../lib/utils";
 import { getServerSession } from "next-auth";
 
 const CreateStreamSchema = z.object({
     creatorId: z.string(),
     url: z.string()
-})
+});
+
+const MAX_QUEUE_LEN = 20;
 
 export async function POST(req: NextRequest) {
     try {
@@ -23,6 +25,21 @@ export async function POST(req: NextRequest) {
             })
         }
 
+        const session = await getServerSession();
+        const user = await db.user.findFirst({
+            where: {
+                email: session?.user?.email ?? "",
+            }
+        });
+
+        if (!user) {
+            return NextResponse.json({
+                message: "Unauthenticated"
+            }, {
+                status: 411
+            });
+        }
+
         const extractedId = data.url.split("?v=")[1];
 
         const res = await youtubesearchapi.GetVideoDetails(extractedId)
@@ -30,9 +47,24 @@ export async function POST(req: NextRequest) {
         const thumbnails = res.thumbnail.thumbnails;
         thumbnails.sort((a: { width: number }, b: { width: number }) => a.width < b.width ? -1 : 1);
 
+        const existingActiveStream = await db.stream.count({
+            where: {
+                userId: data.creatorId
+            }
+        })
+
+        if (existingActiveStream > MAX_QUEUE_LEN) {
+            return NextResponse.json({
+                message: "Already at limit"
+            }, {
+                status: 411
+            })
+        }
+
         const stream = await db.stream.create({
             data: {
                 userId: data.creatorId,
+                addedBy: user.id,
                 url: data.url,
                 extractedId,
                 type: "Youtube",
@@ -48,7 +80,6 @@ export async function POST(req: NextRequest) {
             upvotes: 0
         })
     } catch (e) {
-        console.log(e)
         return NextResponse.json({
             message: "Error while adding a stream"
         }, {
@@ -60,7 +91,6 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
     const creatorId = req.nextUrl.searchParams.get("creatorId");
     const session = await getServerSession();
-    // Todo: You can get rid of the db call here
     const user = await db.user.findFirst({
         where: {
             email: session?.user?.email ?? "",
