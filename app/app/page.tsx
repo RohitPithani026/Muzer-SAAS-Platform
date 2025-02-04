@@ -1,9 +1,9 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Music, Play, Users, Zap } from "lucide-react"
-import { Appbar } from "./components/Appbar"
-import { Redirect } from "./components/Redirect"
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Play, Users, Zap } from "lucide-react"; 
+import { Appbar } from "./components/Appbar";
+import { Redirect } from "./components/Redirect";
 
 export default function LandingPage() {
   return (
@@ -19,7 +19,7 @@ export default function LandingPage() {
                   Let Your Fans <span className="text-purple-500">Choose</span> the Music
                 </h1>
                 <p className="mx-auto max-w-[700px] text-gray-400 md:text-xl">
-                  FanTune puts the power in your audience's hands. Create unforgettable streams with fan-curated
+                  FanTune puts the power in your audience&apos;s hands. Create unforgettable streams with fan-curated
                   playlists.
                 </p>
               </div>
@@ -36,7 +36,7 @@ export default function LandingPage() {
               <div className="flex flex-col items-center text-center">
                 <Users className="h-12 w-12 text-purple-500 mb-4" />
                 <h3 className="text-xl font-bold mb-2">Engage Your Audience</h3>
-                <p className="text-gray-400">Let fans influence your stream's soundtrack.</p>
+                <p className="text-gray-400">Let fans influence your stream&apos;s soundtrack.</p>
               </div>
               <div className="flex flex-col items-center text-center">
                 <Zap className="h-12 w-12 text-purple-500 mb-4" />
@@ -74,7 +74,7 @@ export default function LandingPage() {
                 <p className="text-xs text-gray-400">
                   By signing up, you agree to our{" "}
                   <Link className="underline hover:text-purple-400" href="#">
-                    Terms & Conditions
+                    Terms &amp; Conditions
                   </Link>
                   .
                 </p>
@@ -95,6 +95,5 @@ export default function LandingPage() {
         </nav>
       </footer>
     </div>
-  )
+  );
 }
-

@@ -7,10 +7,12 @@ import { useEffect } from "react";
 export function Redirect() {
     const session = useSession();
     const router = useRouter();
+
     useEffect(() => {
         if (session?.data?.user) {
             router.push("/dashboard");
         }
-    }, [session])
-    return null
+    }, [session, router]); // ✅ Add `router` to the dependency array
+
+    return null;
 }

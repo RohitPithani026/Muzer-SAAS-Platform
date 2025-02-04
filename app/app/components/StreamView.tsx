@@ -70,13 +70,13 @@ export default function StreamView({
             refreshStreams();
         }, REFRESH_INTERVAL_MS);
         return () => clearInterval(interval);
-    }, []); 
+    }, [creatorId]); 
 
 
     useEffect(() => {
         if (!videoPlayerRef.current || !currentVideo) return;
 
-        let player = YouTubePlayer(videoPlayerRef.current, {
+        const player = YouTubePlayer(videoPlayerRef.current, {
             videoId: currentVideo.extractedId,
             playerVars: {
                 autoplay: 1,
@@ -90,7 +90,7 @@ export default function StreamView({
             player.playVideo();
         });
 
-        player.on("stateChange", (event: any) => {
+        player.on("stateChange", (event: { data: number }) => {
             console.log("Player State Changed:", event.data);
             if (event.data === 0) {
                 console.log("Video ended. Playing next...");

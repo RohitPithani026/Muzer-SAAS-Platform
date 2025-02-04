@@ -21,13 +21,13 @@ const handler = NextAuth({
                         email: params.user.email,
                         provider: "Google"
                     } 
-                })
-            } catch(e) {
-                
+                });
+            } catch (error) {
+                console.error("Error creating user:", error); // ✅ Log the error
             }
             return true;
         }
     }
-})
+});
 
-export { handler as GET, handler as POST }
+export { handler as GET, handler as POST };
