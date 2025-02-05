@@ -9,6 +9,7 @@ import { motion } from "framer-motion"
 import { toast, ToastContainer } from "react-toastify"
 import { Appbar } from "./Appbar"
 import YouTubePlayer from "youtube-player";
+import Image from "next/image";
 
 interface Video {
     id: string;
@@ -58,7 +59,7 @@ export default function StreamView({
                 return video;
             }
             if (video && sortedQueue.some((v: Video) => v.id === video.id)) {
-                return video; 
+                return video;
             }
             return json.activeStream?.stream || video;
         });
@@ -70,7 +71,7 @@ export default function StreamView({
             refreshStreams();
         }, REFRESH_INTERVAL_MS);
         return () => clearInterval(interval);
-    }, [creatorId]); 
+    }, [creatorId]);
 
 
     useEffect(() => {
@@ -167,7 +168,7 @@ export default function StreamView({
             setQueue(q => q.filter(video => video.id !== json.stream.id));
 
             setTimeout(() => {
-                refreshStreams(); 
+                refreshStreams();
             }, 2000);
 
         } catch (e) {
@@ -245,8 +246,11 @@ export default function StreamView({
                                         </div>
                                     ) : (
                                         <>
-                                            <img
+                                            <Image
                                                 src={currentVideo.bigImg}
+                                                alt={currentVideo.title} // Always include alt text
+                                                width={640}
+                                                height={360}
                                                 className="w-full h-72 object-cover rounded"
                                             />
                                             <p className="mt-2 text-center font-semibold text-white">{currentVideo.title}</p>
@@ -313,9 +317,11 @@ export default function StreamView({
                                         >
                                             <CardContent className="flex items-start p-4 gap-4">
                                                 {/* Video Thumbnail */}
-                                                <img
+                                                <Image
                                                     src={video.bigImg || "/placeholder.svg"}
                                                     alt={`Thumbnail for ${video.title}`}
+                                                    width={112}
+                                                    height={80}
                                                     className="w-28 h-20 object-cover rounded-md flex-shrink-0"
                                                 />
 
