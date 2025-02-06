@@ -4,10 +4,5 @@
             "source": "/(.*)",
             "destination": "/"
         }
-    ],
-    "build": {
-        "env": {
-            "DATABASE_URL": "postgresql://neondb_owner:npg_5kXvlLGVmia6@ep-delicate-band-a8jinh8p-pooler.eastus2.azure.neon.tech/neondb?sslmode=require"
-        }
-    }
+    ]
 }
