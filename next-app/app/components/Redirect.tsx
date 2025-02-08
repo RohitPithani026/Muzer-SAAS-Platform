@@ -12,7 +12,7 @@ export function Redirect() {
         if (session?.data?.user) {
             router.push("/dashboard");
         }
-    }, [session, router]); // ✅ Add `router` to the dependency array
+    }, [session, router]); 
 
     return null;
 }

@@ -23,7 +23,7 @@ const handler = NextAuth({
                     } 
                 });
             } catch (error) {
-                console.error("Error creating user:", error); // ✅ Log the error
+                console.error("Error creating user:", error);
             }
             return true;
         }

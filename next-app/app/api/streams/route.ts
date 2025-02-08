@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
             upvotes: 0
         });
     } catch (error) {
-        console.error("Error while adding a stream:", error); // ✅ Log the error
+        console.error("Error while adding a stream:", error);
         return NextResponse.json(
             { message: "Error while adding a stream" },
             { status: 411 }

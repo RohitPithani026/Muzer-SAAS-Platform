@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
             message: "Done!"
         });
     } catch (error) {
-        console.error("Error while upvoting:", error); // ✅ Log the error
+        console.error("Error while upvoting:", error); 
         return NextResponse.json(
             { message: "Error while upvoting" },
             { status: 411 }
