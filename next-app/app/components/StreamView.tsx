@@ -10,8 +10,6 @@ import { toast, ToastContainer } from "react-toastify"
 import { Appbar } from "./Appbar"
 import YouTubePlayer from "youtube-player";
 import Image from "next/image";
-
-// test commit 
 interface Video {
     id: string;
     type: string;
