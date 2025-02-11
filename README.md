@@ -76,10 +76,22 @@ To set up the project locally, follow these steps:
 2.  **Install dependencies**:
     
     ```bash
-    npm install    
+    pnpm install    
     ```
     
-3.  **Run the development server**:
+3. **For postgres, you need to run the following command**:
+
+    ```
+    docker run -d \
+    --name muzer-db \
+    -e POSTGRES_USER=myuser \
+    -e POSTGRES_PASSWORD=mypassword \
+    -e POSTGRES_DB=mydatabase \
+    -p 5432:5432 \
+    postgres
+    ```
+
+4.  **Run the development server**:
     
     ```bash
     npm run dev  
