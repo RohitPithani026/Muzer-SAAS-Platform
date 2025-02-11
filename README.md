@@ -124,8 +124,6 @@ We welcome contributions from the community! Here’s how you can help:
 4.  **Push to the branch** (`git push origin feature-branch`).
 5.  **Submit a pull request** for review.
 
-
-
 ## 🌐 Connect with Me
 
 💻 **GitHub**: [Rohit Pithani](https://github.com/RohitPithani026)  
