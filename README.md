@@ -98,7 +98,6 @@ To set up the project locally, follow these steps:
     ```
     
     The application will be accessible at **`http://localhost:3000`**.
-    
 
 ## 🏗 Deployment
 
