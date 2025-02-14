@@ -72,7 +72,6 @@ export default function StreamView({
         return () => clearInterval(interval);
     }, [creatorId]);
 
-
     useEffect(() => {
         if (!videoPlayerRef.current || !currentVideo) return;
 
