@@ -7,12 +7,20 @@ app.use(express.json());
 const client = createClient();
 client.connect()
 
-app.post("/submit", (req, res) => {
-    const {problemId, userId, code, language} = req.body;
-    client.lPush("submissions", JSON.stringify({problemId, userId, code, language}))
-    res.json({
-        message: "Submission received!"
-    })
+app.post("/submit", async (req, res) => {
+    const { problemId, userId, code, language } = req.body;
+    try {
+        await client.lPush("submissions", JSON.stringify({ problemId, userId, code, language }))
+        
+        res.json({
+            message: "Submission received!"
+        })
+    } catch (e) {
+        res.json({
+            message: "Submission failed"
+        })
+    }
+    
 })
 
 app.listen(3000);
